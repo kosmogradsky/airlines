@@ -5,15 +5,11 @@ import { Epic, ofType } from 'redux-observable';
 import { switchMap, map } from 'rxjs/operators';
 import { ajax } from 'rxjs/ajax';
 import { Link } from '../utils/Link';
+import { City } from '../App/types';
 
 import './Cities.css'
 
-interface CityBasic {
-  id: number;
-  name: string
-}
-
-export type State = RemoteData<CityBasic[], never>;
+export type State = RemoteData<City[], never>;
 
 const initialState = new NotAsked();
 
@@ -24,7 +20,7 @@ export class FetchRequest {
 class FetchSuccess {
   readonly type = 'Cities/FetchSuccess'
 
-  constructor(readonly cities: CityBasic[]) {}
+  constructor(readonly cities: City[]) {}
 }
 
 class FetchFailure {

@@ -5,22 +5,19 @@ import { switchMap, map } from 'rxjs/operators';
 import { ajax } from 'rxjs/ajax';
 import { RemoteData, NotAsked, Loading, Success, Failure } from '../utils/RemoteData';
 import cx from 'classnames'
+import * as R from 'ramda';
+
+import { City as ICity, Flight } from '../App/types'
+import * as Favorites from '../Favorites/Favorites'
 
 import * as s from './City.css'
 
-interface CityWithFlights {
-  id: number;
-  name: string
-  flights: {
-    id: number,
-    costInEuro: number,
-    departure: number,
-    arrival: number,
-    interchangesCount: number
-  }[]
+interface CityAndFlights {
+  city: ICity;
+  flights: Flight[]
 }
 
-export type State = RemoteData<CityWithFlights, never>;
+export type State = RemoteData<CityAndFlights, never>;
 
 const initialState = new NotAsked();
 
@@ -36,7 +33,7 @@ class FetchSuccess {
   readonly type = 'City/FetchSuccess'
 
   constructor(
-    readonly cities: CityWithFlights
+    readonly cities: CityAndFlights
   ) {}
 }
 
@@ -67,7 +64,10 @@ export const epic: Epic<AnyAction, Action> = action$ => action$.pipe(
 
 interface Props {
   state: State;
-  dispatch: Dispatch<Action>
+  favorites: Favorites.State;
+  dispatch: Dispatch<Action>,
+  addToFavorites: (favorites: Favorites.State, city: ICity, flight: Flight) => void,
+  removeFromFavorites: (favorites: Favorites.State, flightId: number) => void
 }
 
 const getInterchangesString = (count: number) => {
@@ -83,18 +83,18 @@ const getInterchangesString = (count: number) => {
 
 export class City extends React.PureComponent<Props> {
   render() {
-    const { state } = this.props;
+    const { state, favorites } = this.props;
 
     switch (state.type) {
       case 'Success':
-        const { name, flights } = state.payload;
+        const { city, flights } = state.payload;
 
         return (
           <>
-            <h2 className='title is-2'>Flights to {name}</h2>
+            <h2 className='title is-2'>Flights to {city.name}</h2>
             <div className={s.cards}>
-              {flights.map((flight, index) => (
-                <div key={index} className={cx(s.card, "card")}>
+              {flights.map(flight => (
+                <div key={flight.id} className={cx(s.card, "card")}>
                   <header className="card-header">
                     <p className="card-header-title">
                       Flight {flight.id}
@@ -108,7 +108,21 @@ export class City extends React.PureComponent<Props> {
                     </div>
                   </div>
                   <footer className="card-footer">
-                    <button type='button' className={cx(s.favoriteButton, "card-footer-item has-text-link")}>❤ Favorite</button>
+                    {R.has(flight.id.toString(), favorites)
+                      ? (
+                        <button
+                          type='button'
+                          className={cx(s.favoriteButton, "card-footer-item has-text-link")}
+                          onClick={() => this.props.removeFromFavorites(favorites, flight.id)}
+                        >Remove from favorites</button>
+                      ) : (
+                        <button
+                          type='button'
+                          className={cx(s.favoriteButton, "card-footer-item has-text-link")}
+                          onClick={() => this.props.addToFavorites(favorites, city, flight)}
+                        >Add to favorites</button>
+                      )
+                    }
                   </footer>
                 </div>
               ))}

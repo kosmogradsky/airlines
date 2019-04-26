@@ -8,6 +8,8 @@ import cx from 'classnames';
 import * as routing from './routing'
 import * as Cities from '../Cities/Cities'
 import * as City from '../City/City'
+import * as Favorites from '../Favorites/Favorites'
+import { City as ICity, Flight } from './types'
 
 import { LinkContext, Link } from '../utils/Link';
 import { actionToPlainObject } from '../utils/actionToPlainObject';
@@ -18,14 +20,19 @@ interface State {
   route: routing.State,
   cities: Cities.State
   city: City.State
+  favorites: Favorites.State
 }
 
-type Action = routing.Action | Cities.Action | City.Action;
+type Action = routing.Action |
+  Cities.Action |
+  City.Action |
+  Favorites.Action;
 
 const reducer = combineReducers<State>({
   route: routing.reducer,
   cities: Cities.reducer,
   city: City.reducer,
+  favorites: Favorites.reducer
 })
 
 
@@ -69,6 +76,7 @@ const epic = combineEpics<Action, Action, State>(
   routing.epic,
   Cities.epic,
   City.epic,
+  Favorites.epic
 )
 
 // STORE
@@ -112,8 +120,22 @@ export class App extends React.PureComponent {
     }
   }
 
+  addToFavorites = (favorites: Favorites.State, city: ICity, flight: Flight) => {
+    const updatedFavorites = Favorites.add(favorites, flight, city)
+
+    console.log(favorites, city, flight)
+
+    store.dispatch(new Favorites.Update(updatedFavorites))
+  }
+
+  removeFromFavorites = (favorites: Favorites.State, flightId: number) => {
+    const updatedFavorites = Favorites.remove(favorites, flightId)
+
+    store.dispatch(new Favorites.Update(updatedFavorites))
+  }
+
   render() {
-    const { cities, city, route } = this.state.app
+    const { cities, city, route, favorites } = this.state.app
 
     const getContentFromRoute = () => {
       switch(route) {
@@ -128,7 +150,10 @@ export class App extends React.PureComponent {
           return (
             <City.City
               state={city}
+              favorites={favorites}
               dispatch={store.dispatch}
+              addToFavorites={this.addToFavorites}
+              removeFromFavorites={this.removeFromFavorites}
             />
           )
       }
