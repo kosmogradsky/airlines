@@ -4,11 +4,15 @@ import { Epic, ofType } from 'redux-observable';
 import { switchMap, map } from 'rxjs/operators';
 import { ajax } from 'rxjs/ajax';
 import { RemoteData, NotAsked, Loading, Success, Failure } from '../utils/RemoteData';
+import cx from 'classnames'
+
+import * as s from './City.css'
 
 interface CityWithFlights {
   id: number;
   name: string
   flights: {
+    id: number,
     costInEuro: number,
     departure: number,
     arrival: number,
@@ -66,6 +70,17 @@ interface Props {
   dispatch: Dispatch<Action>
 }
 
+const getInterchangesString = (count: number) => {
+  switch (count) {
+    case 0:
+      return 'Direct'
+    case 1:
+      return '1 interchange'
+    default:
+      return count + ' interchanges'
+  }
+}
+
 export class City extends React.PureComponent<Props> {
   render() {
     const { state } = this.props;
@@ -76,15 +91,28 @@ export class City extends React.PureComponent<Props> {
 
         return (
           <>
-            <h2>Flights to {name}</h2>
-            {flights.map((flight, index) => (
-              <div key={index}>
-                <div>{flight.costInEuro}</div>
-                <div>{flight.arrival}</div>
-                <div>{flight.departure}</div>
-                <div>{flight.interchangesCount}</div>
-              </div>
-            ))}
+            <h2 className='title is-2'>Flights to {name}</h2>
+            <div className={s.cards}>
+              {flights.map((flight, index) => (
+                <div key={index} className={cx(s.card, "card")}>
+                  <header className="card-header">
+                    <p className="card-header-title">
+                      Flight {flight.id}
+                    </p>
+                  </header>
+                  <div className="card-content">
+                    <div className="content">
+                      <div>€{flight.costInEuro}</div>
+                      <div>{flight.arrival}:00 — {flight.departure}:00</div>
+                      <div>{getInterchangesString(flight.interchangesCount)}</div>
+                    </div>
+                  </div>
+                  <footer className="card-footer">
+                    <button type='button' className={cx(s.favoriteButton, "card-footer-item has-text-link")}>❤ Favorite</button>
+                  </footer>
+                </div>
+              ))}
+            </div>
           </>
         )
       case 'Failure':

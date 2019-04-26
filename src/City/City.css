@@ -1,0 +1,11 @@
+.favoriteButton {
+  background-color: transparent;
+  border: none;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-column-gap: 1em;
+  grid-row-gap: 2em;
+}

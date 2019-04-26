@@ -1,17 +1,18 @@
 import * as React from 'react'
 import { Unsubscribe, applyMiddleware, compose, createStore, combineReducers, AnyAction } from 'redux';
-
-import { createEpicMiddleware, combineEpics, Epic, ofType } from 'redux-observable';
-import { actionToPlainObject } from '../utils/actionToPlainObject';
-
-import * as Cities from '../Cities/Cities'
-import * as City from '../City/City'
-import * as routing from './routing'
-
-import './App.css'
-import { LinkContext } from '../utils/Link';
 import { switchMap } from 'rxjs/operators';
 import { EMPTY, merge, of } from 'rxjs';
+import { createEpicMiddleware, combineEpics, Epic, ofType } from 'redux-observable';
+import cx from 'classnames';
+
+import * as routing from './routing'
+import * as Cities from '../Cities/Cities'
+import * as City from '../City/City'
+
+import { LinkContext, Link } from '../utils/Link';
+import { actionToPlainObject } from '../utils/actionToPlainObject';
+
+import * as s from './App.css'
 
 interface State {
   route: routing.State,
@@ -138,11 +139,19 @@ export class App extends React.PureComponent {
         history: routing.history,
         requestUrlChange: location => store.dispatch(new routing.UrlChangeRequest(location))
       }}>
-        <div>
-          <h1>Kosmogradsky Airlines</h1>
-          <div>My airlines fly only to the cities where I have been. I really liked them, and I hope you will too! Enjoy your flight!</div>
-        </div>
-        {getContentFromRoute()}
+        <Link to='/' className={cx(s.hero, "hero is-medium is-info is-bold")}>
+          <div className="hero-body">
+            <div className="container">
+              <h1 className="title">Kosmogradsky Airlines</h1>
+              <div className="subtitle">My airlines fly only to the cities where I have been. I really liked them, and I hope you will too! Enjoy your flight!</div>
+            </div>
+          </div>
+        </Link>
+        <section className='section'>
+          <div className='container'>
+            {getContentFromRoute()}
+          </div>
+        </section>
       </LinkContext.Provider>
     )
   }

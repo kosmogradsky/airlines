@@ -1,12 +1,12 @@
 import * as React from 'react'
-
-import './Cities.css'
 import { RemoteData, NotAsked, Loading, Success, Failure } from '../utils/RemoteData';
 import { Reducer, Dispatch, AnyAction } from 'redux';
 import { Epic, ofType } from 'redux-observable';
 import { switchMap, map } from 'rxjs/operators';
 import { ajax } from 'rxjs/ajax';
 import { Link } from '../utils/Link';
+
+import './Cities.css'
 
 interface CityBasic {
   id: number;
@@ -65,10 +65,12 @@ export class Cities extends React.PureComponent<Props> {
       case 'Success':
         return (
           <>
-            <h2>Select a city</h2>
-            {state.payload.map(city => (
-              <Link key={city.id} to={'/city/' + city.id}>{city.name}</Link>
-            ))}
+            <h2 className='title is-2'>Select a city</h2>
+            <div className="buttons">
+              {state.payload.map(city => (
+                <Link className='button is-large' key={city.id} to={'/city/' + city.id}>{city.name}</Link>
+              ))}
+            </div>
           </>
         )
       case 'Failure':
