@@ -1,6 +1,6 @@
 # Kosmogradsky Airlines
 
-**Demo**: https://kosmogradsky.github.io/airlines/#/
+**Demo**: https://kosmogradsky.github.io/airlines/
 
 This is a small pet project of my imaginary airlines.
 
