@@ -4,17 +4,16 @@ import { Epic, ofType } from 'redux-observable';
 import { switchMap, map } from 'rxjs/operators';
 import { ajax } from 'rxjs/ajax';
 import { RemoteData, NotAsked, Loading, Success, Failure } from '../utils/RemoteData';
-import cx from 'classnames'
-import * as R from 'ramda';
 
-import { City as ICity, Flight } from '../App/types'
+import { City as ICity, Flight as IFlight } from '../App/types'
 import * as Favorites from '../Favorites/Favorites'
 
 import * as s from './City.css'
+import { Flight } from '../Flight/Flight';
 
 interface CityAndFlights {
   city: ICity;
-  flights: Flight[]
+  flights: IFlight[]
 }
 
 export type State = RemoteData<CityAndFlights, never>;
@@ -64,21 +63,10 @@ export const epic: Epic<AnyAction, Action> = action$ => action$.pipe(
 
 interface Props {
   state: State;
-  favorites: Favorites.State;
+  favorites: Favorites.FavoriteFlights;
   dispatch: Dispatch<Action>,
-  addToFavorites: (favorites: Favorites.State, city: ICity, flight: Flight) => void,
-  removeFromFavorites: (favorites: Favorites.State, flightId: number) => void
-}
-
-const getInterchangesString = (count: number) => {
-  switch (count) {
-    case 0:
-      return 'Direct'
-    case 1:
-      return '1 interchange'
-    default:
-      return count + ' interchanges'
-  }
+  addToFavorites: (favoriteFlights: Favorites.FavoriteFlights, city: ICity, flight: IFlight) => void,
+  removeFromFavorites: (favoriteFlights: Favorites.FavoriteFlights, flightId: number) => void
 }
 
 export class City extends React.PureComponent<Props> {
@@ -93,39 +81,15 @@ export class City extends React.PureComponent<Props> {
           <>
             <h2 className='title is-2'>Flights to {city.name}</h2>
             <div className={s.cards}>
-              {flights.map(flight => (
-                <div key={flight.id} className={cx(s.card, "card")}>
-                  <header className="card-header">
-                    <p className="card-header-title">
-                      Flight {flight.id}
-                    </p>
-                  </header>
-                  <div className="card-content">
-                    <div className="content">
-                      <div>€{flight.costInEuro}</div>
-                      <div>{flight.arrival}:00 — {flight.departure}:00</div>
-                      <div>{getInterchangesString(flight.interchangesCount)}</div>
-                    </div>
-                  </div>
-                  <footer className="card-footer">
-                    {R.has(flight.id.toString(), favorites)
-                      ? (
-                        <button
-                          type='button'
-                          className={cx(s.favoriteButton, "card-footer-item has-text-link")}
-                          onClick={() => this.props.removeFromFavorites(favorites, flight.id)}
-                        >Remove from favorites</button>
-                      ) : (
-                        <button
-                          type='button'
-                          className={cx(s.favoriteButton, "card-footer-item has-text-link")}
-                          onClick={() => this.props.addToFavorites(favorites, city, flight)}
-                        >Add to favorites</button>
-                      )
-                    }
-                  </footer>
-                </div>
-              ))}
+              {flights.map(flight => <Flight
+                key={flight.id}
+                title={'Flight ' + flight.id}
+                flight={flight}
+                city={city}
+                favorites={favorites}
+                addToFavorites={this.props.addToFavorites}
+                removeFromFavorites={this.props.removeFromFavorites}
+              />)}
             </div>
           </>
         )

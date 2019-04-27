@@ -1,0 +1,41 @@
+.closeButton {
+  margin-left: auto;
+}
+
+.card {
+  margin-bottom: 2em;
+}
+
+.card:last-child {
+  margin-bottom: 3em;
+}
+
+.flights {
+  overflow: auto;
+  margin-left: -1.5em;
+  margin-right: -1.5em;
+  padding-left: 1.5em;
+  padding-right: 1.5em;
+  padding-top: 2px;
+}
+
+.root {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding-top: 3em;
+  padding-left: 1.5em;
+  padding-right: 1.5em;
+}
+
+@media (min-width: 635px) {
+  .root {
+    width: 50%;
+  }
+}

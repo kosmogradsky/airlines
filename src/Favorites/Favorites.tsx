@@ -1,14 +1,19 @@
 import { Epic, ofType, combineEpics } from "redux-observable";
-import { AnyAction, Reducer } from "redux";
+import { AnyAction, Reducer, Dispatch } from "redux";
 import { switchMap, tap, ignoreElements } from "rxjs/operators";
 import { EMPTY, of } from "rxjs";
-import { Flight, City } from "../App/types";
+import { Flight as IFlight, City } from "../App/types";
 import * as R from 'ramda';
+import * as React from 'react';
+import cx from 'classnames';
 
-interface FavoriteFlight {
+import * as s from './Favorites.css'
+import { Flight } from "../Flight/Flight";
+
+export interface FavoriteFlight {
   city: {
     id: number;
-    name: number;
+    name: string;
   }
   id: number,
   costInEuro: number,
@@ -17,15 +22,24 @@ interface FavoriteFlight {
   interchangesCount: number
 }
 
-export type State = Record<string, FavoriteFlight>
+export type FavoriteFlights = Record<string, FavoriteFlight>
+type Visibility = 'hidden' | 'visible'
 
-const initialState: State = {}; 
+export interface State {
+  visibility: Visibility,
+  favoriteFlights: FavoriteFlights
+}
+
+const initialState: State = {
+  visibility: 'hidden',
+  favoriteFlights: {}
+}; 
 
 class Load {
   readonly type = 'Favorites/Load'
 
   constructor(
-    readonly flights: Record<string, FavoriteFlight>
+    readonly flights: FavoriteFlights
   ) {}
 }
 
@@ -33,17 +47,33 @@ export class Update {
   readonly type = 'Favorites/Update'
 
   constructor(
-    readonly flights: Record<string, FavoriteFlight>
+    readonly flights: FavoriteFlights
   ) {}
 }
 
-export type Action = Update | Load;
+export class ChangeVisibility {
+  readonly type = 'Favorites/ChangeVisibility'
+
+  constructor(
+    readonly visibility: Visibility
+  ) {}
+}
+
+export type Action = Update | Load | ChangeVisibility;
 
 export const reducer: Reducer<State, Action> = (prevState = initialState, action) => {
   switch(action.type) {
+    case 'Favorites/ChangeVisibility':
+      return {
+        ...prevState,
+        visibility: action.visibility
+      }
     case 'Favorites/Load':
     case 'Favorites/Update':
-      return action.flights;
+      return {
+        ...prevState,
+        favoriteFlights: action.flights
+      };
     default:
       return prevState;
   }
@@ -67,16 +97,60 @@ const saveEpic: Epic<AnyAction, Action> = action$ => action$.pipe(
 
 export const epic = combineEpics(initEpic, saveEpic)
 
-export const add = (state: State, flight: Flight, city: City) => {
+export const add = (favoriteFlights: FavoriteFlights, flight: IFlight, city: City): FavoriteFlights => {
   const favoriteFlight = {
     ...flight,
     city
   }
 
   return {
-    ...state,
+    ...favoriteFlights,
     [favoriteFlight.id]: favoriteFlight
   }
 }
 
-export const remove = (state: State, flightId: number) => R.omit([flightId.toString()], state)
+export const remove = (favoriteFlights: FavoriteFlights, flightId: number): FavoriteFlights => R.omit(
+  [flightId.toString()],
+  favoriteFlights
+)
+
+interface Props {
+  state: State;
+  dispatch: Dispatch<Action>,
+  addToFavorites: (favoriteFlights: FavoriteFlights, city: City, flight: IFlight) => void,
+  removeFromFavorites: (favoriteFlights: FavoriteFlights, flightId: number) => void
+}
+
+export class Favorites extends React.PureComponent<Props> {
+  render() {
+    const {
+      state: { favoriteFlights, visibility },
+      dispatch,
+      addToFavorites,
+      removeFromFavorites
+    } = this.props;
+
+    return visibility === 'visible' ? (
+      <section className={s.root}>
+        <button
+          type='button'
+          className={cx(s.closeButton, "delete is-large")}
+          onClick={() => dispatch(new ChangeVisibility('hidden'))}
+        >Close</button>
+        <h2 className='title is-2'>❤ Favorites</h2>
+        <div className={s.flights}>
+          {Object.values(favoriteFlights).map(flight => <Flight
+            className={s.card}
+            key={flight.id}
+            title={'Flight ' + flight.id + ' to ' + flight.city.name}
+            flight={flight}
+            city={flight.city}
+            favorites={favoriteFlights}
+            addToFavorites={addToFavorites}
+            removeFromFavorites={removeFromFavorites}
+          />)}
+        </div>
+      </section>
+    ) : null
+  }
+}

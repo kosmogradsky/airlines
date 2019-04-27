@@ -120,18 +120,20 @@ export class App extends React.PureComponent {
     }
   }
 
-  addToFavorites = (favorites: Favorites.State, city: ICity, flight: Flight) => {
+  addToFavorites = (favorites: Favorites.FavoriteFlights, city: ICity, flight: Flight) => {
     const updatedFavorites = Favorites.add(favorites, flight, city)
-
-    console.log(favorites, city, flight)
 
     store.dispatch(new Favorites.Update(updatedFavorites))
   }
 
-  removeFromFavorites = (favorites: Favorites.State, flightId: number) => {
+  removeFromFavorites = (favorites: Favorites.FavoriteFlights, flightId: number) => {
     const updatedFavorites = Favorites.remove(favorites, flightId)
 
     store.dispatch(new Favorites.Update(updatedFavorites))
+  }
+
+  showFavorites = () => {
+    store.dispatch(new Favorites.ChangeVisibility('visible'))
   }
 
   render() {
@@ -150,7 +152,7 @@ export class App extends React.PureComponent {
           return (
             <City.City
               state={city}
-              favorites={favorites}
+              favorites={favorites.favoriteFlights}
               dispatch={store.dispatch}
               addToFavorites={this.addToFavorites}
               removeFromFavorites={this.removeFromFavorites}
@@ -172,8 +174,19 @@ export class App extends React.PureComponent {
             </div>
           </div>
         </Link>
+        <Favorites.Favorites
+          state={favorites}
+          dispatch={store.dispatch}
+          addToFavorites={this.addToFavorites}
+          removeFromFavorites={this.removeFromFavorites}
+        ></Favorites.Favorites>
         <section className='section'>
-          <div className='container'>
+          <div className={cx(s.container, 'container')}>
+            <button
+              type='button'
+              className={cx(s.favoritesButton, 'button')}
+              onClick={this.showFavorites}
+            >❤ Favorites</button>
             {getContentFromRoute()}
           </div>
         </section>

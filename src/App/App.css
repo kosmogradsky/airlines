@@ -1,0 +1,21 @@
+.favoritesButton {
+  margin-left: auto;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+html, body {
+  overflow: hidden;
+}
+
+html, body, :global(#root) {
+  height: 100%;
+  width: 100%;
+}
+
+:global(#root) {
+  overflow: auto;
+}
